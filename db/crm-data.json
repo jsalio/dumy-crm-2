@@ -1,0 +1,42 @@
+[
+    {
+        "id" : 1,
+        "name" : "Apertura de Prestamo",
+        "date":"2021-06-12T15:00:00",
+        "status":true,
+        "configuration":{
+            "expireDateInDays":5,
+            "documentTypes":[
+                {
+                    "id":1,
+                    "name":"Cedula de Ciudadania",
+                    "isTemplate":true,
+                    "status":"active",
+                    "isRequired":true
+                },
+                {
+                    "id":2,
+                    "name":"Cedula de Extranjeria",
+                    "isTemplate":true,
+                    "status":"active",
+                    "isRequired":false
+                },
+                {
+                    "id":3,
+                    "name":"Pasaporte",
+                    "isTemplate":true,
+                    "status":"active",
+                    "isRequired":true
+                },
+                {
+                    "id":4,
+                    "name":"Contrato de Apertura",
+                    "isTemplate":true,
+                    "status":"active",
+                    "isRequired":false
+                }
+                
+            ]
+        }
+    }
+]
