@@ -13,11 +13,25 @@ const Settings: NextPage = () => {
     const [date, setDate] = useState(new Date());
     const [active, isActive] = useState(false);
     const [expiredDays, setExpiredDays] = useState(0);
-
+    const [documentTypes, setDocumentTypes] = useState<DocumentType[]>(new Array<DocumentType>());
+    const [selectedDocumentTypes, setSelectedDocumentTypes] = useState(new Array<any>())
     const handlerSubmit = () => {
         setModalOpen(false)
         console.log(name, date, active)
     }
+
+    useEffect(() => {
+        GetDocumentType('manager', 'password').then(res => {
+            setDocumentTypes(res);
+            setSelectedDocumentTypes(res.map((x) => {
+                return {
+                    id: x.id,
+                    name: x.name,
+                    isSelected: false
+                }
+            }))
+        })
+    }, [])
 
     return (
         <Layout>
@@ -33,7 +47,7 @@ const Settings: NextPage = () => {
             >
                 <Modal.Header>Configurar nuevo proceso</Modal.Header>
                 <Modal.Content>
-                    <FormSettings name={name} date={date} active={active} expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
+                    <FormSettings selectedDocumentTypes={selectedDocumentTypes} listOfDocumentTypes={documentTypes} name={name} date={date} active={active} expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={() => setModalOpen(false)}>
@@ -56,18 +70,23 @@ const FormSettings: React.FC<{
     setName: (value: string) => void,
     setDate: (date: Date) => void,
     setActive: (active: boolean) => void
-    setExpiredDateInDays: (days: number) => void
+    setExpiredDateInDays: (days: number) => void,
+    listOfDocumentTypes: DocumentType[],
+    selectedDocumentTypes: any[]
 }> = (props) => {
-    const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedDocumentTypes, setSelectedDocumentTypes] = useState<DocumentType[]>([]);
-    useEffect(() => {
-        GetDocumentType('manager', 'password').then(res => {
-            setDocumentTypes(res);
-            setLoading(false);
-        })
-    }, [])
+    const [selectedDocumentTypes, setSelectedDocumentTypes] = useState(props.selectedDocumentTypes);
+    const [name, setName] = useState(props.name);
 
+
+    const handlerCheckbox = (id: number) => {
+        const newSelectedDocumentTypes = selectedDocumentTypes.map((x) => {
+            if (x.id === id) {
+                x.isSelected = !x.isSelected;
+            }
+            return x;
+        })
+        setSelectedDocumentTypes(newSelectedDocumentTypes);
+    }
 
     return <Form>
         <Form.Field>
@@ -75,7 +94,7 @@ const FormSettings: React.FC<{
             <input placeholder='Nombre de la configuracion del proceso' value={props.name} onChange={(e) => props.setName(e.target.value)} />
         </Form.Field>
         <Form.Field>
-            <label>Fecha</label>
+            <label>Fecha</label>add
             <input placeholder='date' value={props.date.toLocaleDateString()} onChange={(e) => props.setDate(new Date(e.target.value))} />
         </Form.Field>
         <Form.Field>
@@ -86,15 +105,22 @@ const FormSettings: React.FC<{
             <input placeholder='Tiempo de expiracion' />
         </Form.Field>
         <section>
-            <h3>Tipos de Documentos  ({selectedDocumentTypes.length})</h3>
-            <input placeholder='Search' />
-            {loading ? <div>Loading...</div> : <List>
-                {documentTypes.map((documentType) => <List.Item key={documentType.id}> <Checkbox label={documentType.name} /></List.Item>)}
-            </List>}
+            <h3>Tipos de Documentos  ({(selectedDocumentTypes.filter(x => x.selected) as Array<any>).length})</h3>
+            <input placeholder='Search' value={name} onChange={(e) => setName(e.target.value)} />
+            <List>
+                {name === '' ? selectedDocumentTypes.map((documentType) =>
+                    <List.Item key={documentType.id}>
+                        <Checkbox checked={documentType.isSelected} onChange={() => handlerCheckbox(documentType.id)} label={documentType.name} />
+                    </List.Item>) : Filter(selectedDocumentTypes, name).map((documentType) =>
+                        <List.Item key={documentType.id}>
+                            <Checkbox checked={documentType.isSelected} onChange={() => handlerCheckbox(documentType.id)} label={documentType.name} />
+                        </List.Item>)}
+            </List>
         </section>
-        {console.log(documentTypes)}
     </Form>
 }
+
+
 
 
 const ListSettings = () => {
@@ -110,6 +136,14 @@ const ListSettings = () => {
             </List.Item>
         ))}
     </List>
+}
+
+
+/// in typescript 
+// function that filter the list of document types
+// the params for filter this list is a name of the document type
+const Filter = (listOfDocumentTypes: any[], name: string) => {
+    return listOfDocumentTypes.filter(x => x.name.toLowerCase().includes(name.toLowerCase()))
 }
 
 export default Settings
