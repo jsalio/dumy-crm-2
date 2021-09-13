@@ -1,11 +1,11 @@
 import type { NextPage } from 'next'
 import { Layout } from '../../components/Layout'
-import { Button, List, Icon, Modal, Form, Checkbox } from 'semantic-ui-react'
+import { Button, List, Modal, Form, Checkbox } from 'semantic-ui-react'
 import CRMDB from '../../db/crm-data.json';
 import { CrmProcessConfig } from '../../models/Process';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GetDocumentType } from '../../utils/call-ProDoctivity-API';
-import { DocumentType } from '../../models/documentType'
+import { DocumentType } from '../../models/documentType';
 
 const Settings: NextPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
@@ -13,17 +13,36 @@ const Settings: NextPage = () => {
     const [date, setDate] = useState(new Date());
     const [active, isActive] = useState(false);
     const [expiredDays, setExpiredDays] = useState(0);
-    const [documentTypes, setDocumentTypes] = useState<DocumentType[]>(new Array<DocumentType>());
-    const [selectedDocumentTypes, setSelectedDocumentTypes] = useState(new Array<any>())
+    const [availableDocumentTypes, setAvailable] = useState(new Array<any>())
+    const [selected, setSelected] = useState(new Array<any>())
     const handlerSubmit = () => {
-        setModalOpen(false)
-        console.log(name, date, active)
+        setModalOpen(false);
+        const object: CrmProcessConfig = {
+            id: CRMDB.length + 1,
+            name: name,
+            date: date.toLocaleDateString(),
+            status: active,
+            configuration: {
+                expireDateInDays: expiredDays,
+                documentTypes: selected.map((item) => ({
+                    id: item.id,
+                    name: item.name,
+                    isTemplate: true,
+                    status: "active",
+                    isRequired: true
+                }))
+            }
+        };
+        (CRMDB as CrmProcessConfig[]).push(object);
+        setName('');
+        setDate(new Date());
+        isActive(false);
+        setExpiredDays(0);
     }
 
     useEffect(() => {
         GetDocumentType('manager', 'password').then(res => {
-            setDocumentTypes(res);
-            setSelectedDocumentTypes(res.map((x) => {
+            setAvailable(res.map((x) => {
                 return {
                     id: x.id,
                     name: x.name,
@@ -47,7 +66,7 @@ const Settings: NextPage = () => {
             >
                 <Modal.Header>Configurar nuevo proceso</Modal.Header>
                 <Modal.Content>
-                    <FormSettings selectedDocumentTypes={selectedDocumentTypes} listOfDocumentTypes={documentTypes} name={name} date={date} active={active} expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
+                    <FormSettings emitSelected={(list) => setSelected(list)} selectedDocumentTypes={availableDocumentTypes} listOfDocumentTypes={[]} name={name} date={date} active={active} expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={() => setModalOpen(false)}>
@@ -73,9 +92,11 @@ const FormSettings: React.FC<{
     setExpiredDateInDays: (days: number) => void,
     listOfDocumentTypes: DocumentType[],
     selectedDocumentTypes: any[]
+    emitSelected: (selected: any[]) => void
 }> = (props) => {
     const [selectedDocumentTypes, setSelectedDocumentTypes] = useState(props.selectedDocumentTypes);
-    const [name, setName] = useState(props.name);
+    const [filterName, setFilterName] = useState('');
+    const [selectedCounter, setSelectedCounter] = useState(0);
 
 
     const handlerCheckbox = (id: number) => {
@@ -85,7 +106,9 @@ const FormSettings: React.FC<{
             }
             return x;
         })
+        setSelectedCounter(newSelectedDocumentTypes.filter((x) => x.isSelected).length)
         setSelectedDocumentTypes(newSelectedDocumentTypes);
+        props.emitSelected(newSelectedDocumentTypes.filter((x) => x.isSelected));
     }
 
     return <Form>
@@ -102,25 +125,29 @@ const FormSettings: React.FC<{
         </Form.Field>
         <Form.Field>
             <label>Tiempo de expiracion</label>
-            <input placeholder='Tiempo de expiracion' />
+            <input placeholder='Tiempo de expiracion' value={props.expiredInDays} onChange={(e) => props.setExpiredDateInDays(e.target.value === '' ? 0 : Number.parseInt(e.target.value))} />
         </Form.Field>
         <section>
-            <h3>Tipos de Documentos  ({(selectedDocumentTypes.filter(x => x.selected) as Array<any>).length})</h3>
-            <input placeholder='Search' value={name} onChange={(e) => setName(e.target.value)} />
-            <List>
-                {name === '' ? selectedDocumentTypes.map((documentType) =>
-                    <List.Item key={documentType.id}>
-                        <Checkbox checked={documentType.isSelected} onChange={() => handlerCheckbox(documentType.id)} label={documentType.name} />
-                    </List.Item>) : Filter(selectedDocumentTypes, name).map((documentType) =>
-                        <List.Item key={documentType.id}>
-                            <Checkbox checked={documentType.isSelected} onChange={() => handlerCheckbox(documentType.id)} label={documentType.name} />
-                        </List.Item>)}
+            <h3>Tipos de Documentos  ({selectedCounter})</h3>
+            <input placeholder='Search' value={filterName} onChange={(e) => setFilterName(e.target.value)} />
+            <List id="form">
+                {filterName === '' ? DocumentTypesAvailableList(selectedDocumentTypes, handlerCheckbox) : DocumentTypesAvailableList(Filter(selectedDocumentTypes, filterName), handlerCheckbox)}
             </List>
         </section>
     </Form>
 }
 
 
+const DocumentTypesAvailableList = (items: any[], handlerCheckBox: (id: number) => void) => {
+
+    if (items.length === 0) {
+        return <List.Item>No hay documentos disponibles</List.Item>
+    }
+
+    return items.map((documentType) => <List.Item key={documentType.id}>
+        <Checkbox checked={documentType.isSelected} onChange={() => handlerCheckBox(documentType.id)} label={documentType.name} />
+    </List.Item>)
+}
 
 
 const ListSettings = () => {
