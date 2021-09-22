@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { CrmProcess } from "../../../models/Process";
 import { firebase } from '../../../utils/firebase-config';
+import NextCors from "nextjs-cors";
 
 const db = firebase.database();
 const jsTable = "crm-process"
@@ -19,10 +20,17 @@ export type CardInfo = {
     currentDocumentInProcess: number,
 }
 
-export default function handler(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Array<any>>
 ) {
+
+    await NextCors(req, res, {
+        // Options
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+        origin: '*',
+        optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    });
 
     let index = 0;
     const ref = db.ref(jsTable);
