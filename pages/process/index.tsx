@@ -61,8 +61,6 @@ const MyForm: React.FC<{ emitProcess: (data: CrmProcess) => void }> = (props) =>
 }
 
 const ProcessList: React.FC<{ dataSet: Array<CrmProcess> }> = (props) => {
-
-    // const { dataSet } = useQuery<CrmProcess>(jTable)
     return <List divided relaxed>
         {props.dataSet.map((item, index) => (
             <List.Item key={index.toString()}>
