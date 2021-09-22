@@ -41,14 +41,14 @@ export default async function handler(
             dataset.push({
                 processId: data.id,
                 processName: data.name,
-                clientName: 'Dummy client',
-                creatorName: 'Dummy crm Client api',
+                clientName: `Dummy client ${data.id}`,
+                creatorName: 'Dummy Client api',
                 creatorEmail: 'dummy-crm-client@crmclient.com',
                 creatorPhone: '+1-123-456-7890',
                 creationDate: data.date,
                 expiryDate: data.date,
                 status: 'active',
-                processDocumentRequirement: 0,
+                processDocumentRequirement: 6,
                 currentDocumentInProcess: 0,
             });
             // dataset.push(row.val() as CardInfo)
