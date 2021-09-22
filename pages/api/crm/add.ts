@@ -1,6 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { CrmProcessConfig } from '../../../models/Process';
 import CrmDb from '../../../db/crm-data.json';
+import { firebase } from '../../../utils/firebase-config';
+
+const db = firebase.database();
+const jsTable = "crm-process-settings"
 
 export default function handler(
     req: NextApiRequest,
@@ -12,6 +16,8 @@ export default function handler(
         } as any);
     }
     const newProcess = req.body;
-    CrmDb.push(newProcess);
-    res.status(200).json(newProcess);
+    const ref = db.ref(jsTable);
+    const onPush = ref.push();
+    onPush.set(newProcess);
+    res.status(200).json(onPush.key as any)
 }

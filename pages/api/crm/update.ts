@@ -1,6 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { CrmProcessConfig } from '../../../models/Process';
 import CrmDb from '../../../db/crm-data.json';
+import { firebase } from '../../../utils/firebase-config';
+
+const db = firebase.database();
+const jsTable = "crm-process-settings"
 
 export default function handler(
     req: NextApiRequest,
@@ -18,10 +22,7 @@ export default function handler(
             message: 'Process not found'
         } as any);
     }
-    for (let key= 0 ; key <= CrmDb.length-1; key++) {
-        if (CrmDb[key].id === currentProcess.id) {
-            CrmDb[key] = currentProcess;
-        }
-    }
-    res.status(200).json(currentProcess);
+    const ref = db.ref(`${jsTable}/${currentProcess._dbKey}`)
+    ref.update(currentProcess)
+    res.status(200).json(ref.key as any);
 }
