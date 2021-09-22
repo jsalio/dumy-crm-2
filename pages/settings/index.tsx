@@ -6,8 +6,12 @@ import { CrmProcessConfig } from '../../models/Process';
 import React, { useEffect, useState } from 'react';
 import { GetDocumentType } from '../../utils/call-ProDoctivity-API';
 import { DocumentType } from '../../models/documentType';
+import { useQuery } from '../../utils/useQuery';
+
+const jTable = "crm-process-settings"
 
 const Settings: NextPage = () => {
+    const dataBase = useQuery<CrmProcessConfig>(jTable);
     const [modalOpen, setModalOpen] = useState(false);
     const [name, setName] = useState('');
     const [date, setDate] = useState(new Date());
@@ -15,10 +19,12 @@ const Settings: NextPage = () => {
     const [expiredDays, setExpiredDays] = useState(0);
     const [availableDocumentTypes, setAvailable] = useState(new Array<any>())
     const [selected, setSelected] = useState(new Array<any>())
+    const [editedRow, setEditedRow] = useState({} as CrmProcessConfig)
     const handlerSubmit = () => {
         setModalOpen(false);
         const object: CrmProcessConfig = {
             id: CRMDB.length + 1,
+            _dbKey: '',
             name: name,
             date: date.toLocaleDateString(),
             status: active,
@@ -33,7 +39,7 @@ const Settings: NextPage = () => {
                 }))
             }
         };
-        (CRMDB as CrmProcessConfig[]).push(object);
+        dataBase.saveRow(object);
         setName('');
         setDate(new Date());
         isActive(false);
@@ -52,13 +58,26 @@ const Settings: NextPage = () => {
         })
     }, [])
 
+    const findElement = (key: any) => {
+        dataBase.findByKey(key).then((result) => {
+            const cfg: CrmProcessConfig = result;
+            setEditedRow(cfg)
+            setModalOpen(true)
+            setName(result ? cfg.name : '')
+            setDate(result ? new Date(cfg.date) : new Date())
+            isActive(cfg.status)
+            setExpiredDays(cfg.configuration.expireDateInDays)
+            setSelected(cfg.configuration.documentTypes)
+        })
+    }
+
     return (
         <Layout>
             <div>
                 <h1>Configure</h1>
                 <Button onClick={() => setModalOpen(true)}>Nuevo</Button>
             </div>
-            <ListSettings />
+            <ListSettings editItem={(key: any) => findElement(key)} />
             <Modal
                 size={'tiny'}
                 open={modalOpen}
@@ -66,7 +85,15 @@ const Settings: NextPage = () => {
             >
                 <Modal.Header>Configurar nuevo proceso</Modal.Header>
                 <Modal.Content>
-                    <FormSettings emitSelected={(list) => setSelected(list)} selectedDocumentTypes={availableDocumentTypes} listOfDocumentTypes={[]} name={name} date={date} active={active} expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
+                    <FormSettings
+                        editRow={editedRow}
+                        emitSelected={(list) => setSelected(list)}
+                        selectedDocumentTypes={availableDocumentTypes}
+                        listOfDocumentTypes={[]}
+                        name={name}
+                        date={date}
+                        active={active}
+                        expiredInDays={expiredDays} setName={setName} setDate={setDate} setActive={isActive} setExpiredDateInDays={setExpiredDays} />
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={() => setModalOpen(false)}>
@@ -92,7 +119,8 @@ const FormSettings: React.FC<{
     setExpiredDateInDays: (days: number) => void,
     listOfDocumentTypes: DocumentType[],
     selectedDocumentTypes: any[]
-    emitSelected: (selected: any[]) => void
+    emitSelected: (selected: any[]) => void,
+    editRow: CrmProcessConfig
 }> = (props) => {
     const [selectedDocumentTypes, setSelectedDocumentTypes] = useState(props.selectedDocumentTypes);
     const [filterName, setFilterName] = useState('');
@@ -150,14 +178,22 @@ const DocumentTypesAvailableList = (items: any[], handlerCheckBox: (id: number) 
 }
 
 
-const ListSettings = () => {
-    const data = CRMDB as CrmProcessConfig[];
+type ListProps = {
+    editItem: (key: any) => void
+}
+
+const ListSettings = (props: ListProps) => {
+    const { dataSet } = useQuery<CrmProcessConfig>(jTable);
+    console.log(dataSet)
+    if (dataSet.length === 0) {
+        return <div>No hay configuraciones</div>
+    }
     return <List divided relaxed>
-        {data.map((item, index) => (
+        {(dataSet as Array<CrmProcessConfig>).map((item, index) => (
             <List.Item key={index.toString()}>
                 <List.Icon name='github' size='large' verticalAlign='middle' />
                 <List.Content>
-                    <List.Header as='a'>{item.name}</List.Header>
+                    <List.Header as='a'>{item.name} <button onClick={() => props.editItem(item._dbKey)}>edit</button></List.Header>
                     <List.Description as='a'>{item.name} {item.date} status :{item.status ? 'Active' : 'Inactive'}</List.Description>
                 </List.Content>
             </List.Item>
