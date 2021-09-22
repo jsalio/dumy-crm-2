@@ -2,7 +2,7 @@ import { NextPage } from "next"
 import React, { useState } from 'react';
 import { List } from "semantic-ui-react";
 import { Layout } from "../../components/Layout"
-import { CrmProcess, CrmProcessConfig, CrmProcesses } from "../../models/Process";
+import { CrmProcess, CrmProcessConfig } from "../../models/Process";
 import { useQuery } from "../../utils/useQuery";
 
 const jTable = "crm-process"
