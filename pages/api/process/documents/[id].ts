@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { firebase } from '../../../../utils/firebase-config';
 import NextCors from "nextjs-cors";
 import { DocumentTypeForConfiguration } from "../../../../models/documentType";
+import { CardInfo } from "../active-process";
 
 const db = firebase.database();
 const jsTable = "card-info"
@@ -28,21 +29,27 @@ export default async function handler(
     });
 
     const { id } = req.query;
-    const ref = db.ref(`${jsTable}/${id}`);
-    ref.on("value", (snap) => {
-        const data = snap.val();
-        const dataSet = new Array<DocumentCard>();
-        (data.configuration as Array<DocumentTypeForConfiguration>).forEach((element) => {
-            dataSet.push({
-                documentTypeId: element.id,
-                process: data.processId,
-                handle: 0,
-                documentTypeName: element.name,
-                client: data.client,
-                type: 'Solicitante'
+    const ref = db.ref(`${jsTable}`);
+    ref.once('value', (snapshot) => {
+        snapshot.forEach((doc) => {
+            const data = doc.val() as CardInfo;
+            if (data.processId as any == id) {
+                const dataSet = new Array<DocumentCard>();
+                if ((data as any).configuration) {
+                    ((data as any).configuration as Array<DocumentTypeForConfiguration>).forEach((element) => {
+                        dataSet.push({
+                            documentTypeId: element.id,
+                            process: data.processId,
+                            handle: 0,
+                            documentTypeName: element.name,
+                            client: (data as any).client,
+                            type: 'Solicitante'
 
-            })
-        });
-        res.status(200).json(dataSet);
+                        })
+                    });
+                }
+                res.status(200).json(dataSet);
+            }
+        })
     })
 }
