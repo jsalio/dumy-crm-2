@@ -9,9 +9,16 @@ const jTable = "crm-process"
 const jTable2 = "crm-process-settings";
 
 const Process: NextPage = () => {
-    const { saveRow, dataSet } = useQuery<CrmProcess>(jTable)
+    const { saveRow, dataSet, saveCard } = useQuery<CrmProcess>(jTable)
+
+    const pushCard = (key: any) => {
+        console.log('This new key ref', key)
+        saveCard(key, jTable, jTable2, "card-info")
+    }
+
     const saveProcess = async (process: CrmProcess) => {
-        saveRow(process)
+        const key = saveRow(process);
+        pushCard(key)
     }
 
     return <Layout>

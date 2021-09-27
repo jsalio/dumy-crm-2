@@ -1,4 +1,6 @@
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import { CrmProcess, CrmProcessConfig } from '../models/Process';
 import { firebase } from './firebase-config';
 
 const db = firebase.database();
@@ -18,7 +20,7 @@ export type DbQuery<T> = {
      * insert a new row into the table node
      *
      */
-    saveRow: (row: T) => void;
+    saveRow: (row: T) => any;
     /**
      * find a row in the table node
      *
@@ -28,7 +30,9 @@ export type DbQuery<T> = {
      * update a row in the table node
      *
      */
-    edit: (refRow: any, row: T) => Promise<string>
+    edit: (refRow: any, row: T) => Promise<string>,
+
+    saveCard: (key: string, processTable: string, settingTable: any, storeTable: any) => void;
 }
 
 /**
@@ -59,7 +63,7 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
 
     const saveRow = (row: T) => {
         const ref = db.ref(table);
-        ref.push(row);
+        return ref.push(row).key;
     }
 
     const findByKey = (key: string) => {
@@ -76,10 +80,40 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
         return ref.set(row);
     }
 
+    const saveCard = (key: string, processTable: string, settingTable: any, storeTable: any) => {
+        const process = db.ref(`${processTable}/${key}`);
+        const cardTable = db.ref(`${storeTable}`);
+        process.on("value", async (snap) => {
+            const data = snap.val() as CrmProcess;
+            (data as any).key = snap.key;
+            const settingsRef = db.ref(`${settingTable}/${data.configuration}`)
+            settingsRef.on("value", async (settingsSnap) => {
+                const settings = (settingsSnap.val() as CrmProcessConfig) || {};
+                const card = {
+                    processId: (data as any).key,
+                    processName: data.name,
+                    clientName: `Dummy client ${(data as any).key}`,
+                    creatorName: 'Dummy Client api',
+                    creatorEmail: 'dummy-crm-client@crmclient.com',
+                    creatorPhone: '+1-123-456-7890',
+                    creationDate: data.date,
+                    expiryDate: dayjs(data.date).add(settings.configuration.expireDateInDays, 'day').toDate().toLocaleDateString(),
+                    status: 'active',
+                    processDocumentRequirement: settings.configuration.documentTypes.length,
+                    currentDocumentInProcess: 0,
+                    configuration: settings.configuration.documentTypes,
+
+                }
+                cardTable.push(card);
+            })
+        })
+    }
+
     return {
         dataSet,
         saveRow,
         findByKey,
-        edit
+        edit,
+        saveCard
     }
 }
