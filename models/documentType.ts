@@ -21,7 +21,7 @@ export interface Icon {
     description: string;
 }
 
-export interface    DocumentType {
+export interface DocumentType {
     id: number;
     name: string;
     volume: Volume;
@@ -35,8 +35,8 @@ export interface    DocumentType {
 
 export type DocumentTypeForConfiguration = {
     id: number,
-    name:string,
-    isTemplate:boolean,
-    status:"active"| "Inactive",
-    isRequired:boolean,
+    name: string,
+    isTemplate: boolean,
+    status: "active" | "Inactive",
+    isRequired: boolean,
 }
