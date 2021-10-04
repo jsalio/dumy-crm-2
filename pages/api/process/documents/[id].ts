@@ -14,6 +14,7 @@ export type DocumentCard = {
     documentTypeName: string;
     client: string;
     type: 'Solicitante' | 'Other';
+    isTemplate: boolean;
 }
 
 export default async function handler(
@@ -27,6 +28,8 @@ export default async function handler(
         origin: '*',
         optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
     });
+
+    console.log(req.body)
 
     const { id } = req.query;
     const ref = db.ref(`${jsTable}`);
@@ -43,7 +46,8 @@ export default async function handler(
                             handle: 0,
                             documentTypeName: element.name,
                             client: (data as any).client,
-                            type: 'Solicitante'
+                            type: 'Solicitante',
+                            isTemplate: element.isTemplate
 
                         })
                     });
