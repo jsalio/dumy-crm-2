@@ -97,7 +97,7 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
                     creatorEmail: 'dummy-crm-client@crmclient.com',
                     creatorPhone: '+1-123-456-7890',
                     creationDate: data.date,
-                    expiryDate: dayjs(data.date).add(settings.configuration.expireDateInDays, 'day').toDate().toLocaleDateString(),
+                    expiryDate: dayjs(data.date).add(settings.configuration.expireDateInDays, 'day').toDate(),
                     status: 'active',
                     processDocumentRequirement: settings.configuration.documentTypes.length,
                     currentDocumentInProcess: 0,
