@@ -81,6 +81,7 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
     }
 
     const saveCard = (key: string, processTable: string, settingTable: any, storeTable: any) => {
+        debugger
         const process = db.ref(`${processTable}/${key}`);
         const cardTable = db.ref(`${storeTable}`);
         process.on("value", async (snap) => {
@@ -88,7 +89,7 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
             (data as any).key = snap.key;
             const settingsRef = db.ref(`${settingTable}/${data.configuration}`)
             settingsRef.on("value", async (settingsSnap) => {
-                const settings = (settingsSnap.val() as CrmProcessConfig) || {};
+                const settings = settingsSnap.val();
                 const card = {
                     processId: (data as any).key,
                     processName: data.name,
@@ -97,7 +98,7 @@ export const useQuery = <T extends {}>(table: string): DbQuery<T> => {
                     creatorEmail: 'dummy-crm-client@crmclient.com',
                     creatorPhone: '+1-123-456-7890',
                     creationDate: data.date,
-                    expiryDate: dayjs(data.date).add(settings.configuration.expireDateInDays, 'day').toDate(),
+                    expiryDate: dayjs(data.date).add(settings.configuration.expireDateInDays, 'day').toDate().toString(),
                     status: 'active',
                     processDocumentRequirement: settings.configuration.documentTypes.length,
                     currentDocumentInProcess: 0,
