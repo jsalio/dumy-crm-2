@@ -26,6 +26,7 @@ export default function handler(
                                 element.handle = documentId;
                             }
                         });
+                        data.currentDocumentInProcess = (data.configuration as any[]).filter(x => x.handle !== undefined).length;
                         childRef.set(data);
                     }
                 })

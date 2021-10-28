@@ -29,7 +29,7 @@ export default async function handler(
         optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
     });
 
-    console.log(req.body)
+
 
     const { id } = req.query;
     const ref = db.ref(`${jsTable}`);
@@ -43,7 +43,7 @@ export default async function handler(
                         dataSet.push({
                             documentTypeId: element.id,
                             process: data.processId,
-                            handle: data.handle === undefined ? 0 : data.handle,
+                            handle: (element as any).handle === undefined ? 0 : (element as any).handle,
                             documentTypeName: element.name,
                             client: (data as any).client,
                             type: 'Solicitante',
