@@ -17,6 +17,7 @@ export type CardInfo = {
     status: string,
     processDocumentRequirement: number,
     currentDocumentInProcess: number,
+    handle?: number,
 }
 
 export default async function handler(

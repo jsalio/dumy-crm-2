@@ -43,7 +43,7 @@ export default async function handler(
                         dataSet.push({
                             documentTypeId: element.id,
                             process: data.processId,
-                            handle: 0,
+                            handle: data.handle === undefined ? 0 : data.handle,
                             documentTypeName: element.name,
                             client: (data as any).client,
                             type: 'Solicitante',
