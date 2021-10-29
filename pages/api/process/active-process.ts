@@ -36,7 +36,11 @@ export default async function handler(
         const dataset: Array<CardInfo> = [];
         snap.forEach((row) => {
             const data = row.val() as CardInfo;
-            dataset.push(data as any);
+            console.log(data);
+            if (data.currentDocumentInProcess < data.processDocumentRequirement) {
+                dataset.push(data as any);
+            }
+
         })
         res.status(200).json(dataset);
     })
