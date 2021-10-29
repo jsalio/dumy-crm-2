@@ -21,8 +21,6 @@ export default async function handler(
     const { documentId } = req.body;
 
     console.log(req.body);
-    debugger
-
 
     const ref = db.ref(`${jsTable}`);
     ref.on("value", (snap) => {

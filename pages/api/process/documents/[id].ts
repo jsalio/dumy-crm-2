@@ -40,6 +40,7 @@ export default async function handler(
                 const dataSet = new Array<DocumentCard>();
                 if ((data as any).configuration) {
                     ((data as any).configuration as Array<DocumentTypeForConfiguration>).forEach((element) => {
+                        console.log(element, data);
                         dataSet.push({
                             documentTypeId: element.id,
                             process: data.processId,
