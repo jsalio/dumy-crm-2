@@ -20,6 +20,10 @@ export default async function handler(
     const { documentTypeId } = req.body;
     const { documentId } = req.body;
 
+    console.log(req.body);
+    debugger
+
+
     const ref = db.ref(`${jsTable}`);
     ref.on("value", (snap) => {
         snap.forEach((child) => {
@@ -36,8 +40,8 @@ export default async function handler(
                         data.currentDocumentInProcess = (data.configuration as any[]).filter(x => x.handle !== undefined).length;
                         childRef.set(data);
                     }
+                    res.status(200).json(child.val());
                 })
-                res.status(200).json(child.val());
             }
         })
     })
